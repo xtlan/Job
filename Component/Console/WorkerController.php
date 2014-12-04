@@ -1,5 +1,5 @@
 <?php
-namespace Xtlan\Job\Console;
+namespace Xtlan\Job\Component\Console;
 
 use yii\base\Controller;
 use Xtlan\Core\Helper\ConsoleHelper;
