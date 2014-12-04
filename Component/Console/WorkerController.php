@@ -1,7 +1,7 @@
 <?php
 namespace Xtlan\Job\Component\Console;
 
-use yii\base\Controller;
+use yii\console\Controller;
 use Xtlan\Core\Helper\ConsoleHelper;
 
 use Xtlan\Job\Component\Enum\JobStatus;

@@ -1,5 +1,5 @@
 <?php
-namespace Xtlan\Job\Component\Web;
+namespace Xtlan\Job\Component\Controller;
 
 use yii\base\Behavior;
 use Xtlan\Job\Component\JobManager;
@@ -17,11 +17,11 @@ class CreateJobBehavior extends Behavior
 {
 
     /**
-     * commandName
+     * workerName
      *
      * @var string
      */
-    public $commandName;
+    public $workerName;
 
     /**
      * actionName
@@ -81,7 +81,7 @@ class CreateJobBehavior extends Behavior
         $modelName = $this->modelName;
 
         $job = new $modelName;
-        $job->name = $this->commandName;
+        $job->name = $this->workerName;
         $job->action = $this->actionName;
         $job->params = $params;
         if (!$job->save()) {
