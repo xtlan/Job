@@ -4,6 +4,8 @@ class JobException extends \Exception {};
 
 use Xtlan\Core\Model\ActiveRecord;
 use Xtlan\Job\Component\Enum\JobStatus;
+use Xtlan\Core\Model\Behavior\Datetime\TimestampFieldBehavior;
+use Xtlan\Core\Datetime\NullDatetime;
 
 
 /**
@@ -79,10 +81,10 @@ class Job extends ActiveRecord
         return [
             [['uid', 'name'], 'required'],
 
-            [['pid', 'uid', 'name', 'action', 'status'], 'string', 'max' => 512],
+            [['uid', 'name', 'action', 'result'], 'string', 'max' => 512],
 
-            [['start', 'end', 'progress'], 'integer'],
-            [['status', 'result'], 'string']
+            [['start', 'end'], 'default', 'value' => new NullDatetime()],
+            [['progress', 'status'], 'integer'],
         ];
     }
 
@@ -155,9 +157,10 @@ class Job extends ActiveRecord
         $this->pid = $pid;
         $this->status = JobStatus::CREATED;
         $this->progress = 0;
-        $this->start = time();
+        $this->start = new \Datetime();
         if (!$this->save()) {
-            throw new JobException('Не сохранена информация о задаче');
+            var_dump($this->status);die;
+            throw new JobException('Не сохранен запуск задачи ' . print_r($this->errors, true));
         }
 
         return $this;
@@ -173,7 +176,7 @@ class Job extends ActiveRecord
     {
         $this->status = JobStatus::PROCESS;
         if (!$this->save()) {
-            throw new JobException('Не сохранена информация о запуске задачи');    
+            throw new JobException('Не сохранен перевод задачи в обработку ' . print_r($this->errors, true));    
         }
     }
 
@@ -187,9 +190,9 @@ class Job extends ActiveRecord
     {
         $this->status = JobStatus::FINISH;
         $this->progress = 100;
-        $this->end = time();
+        $this->end = new \Datetime();
         if (!$this->update(array('status', 'progress', 'end'))) {
-            throw new JobException('Не сохранена информация о задаче');
+            throw new JobException('Не сохранено завершение задачи' . print_r($this->errors, true));
         }
 
         return $this;

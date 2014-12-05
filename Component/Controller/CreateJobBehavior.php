@@ -6,7 +6,10 @@ use Xtlan\Job\Component\JobManager;
 use yii\base\Model;
 use yii\web\NotFoundHttpException;
 use yii\web\BadRequestHttpException;
+use yii\web\ServerErrorHttpException;
 use Yii;
+use Xtlan\Core\Component\Ajax;
+use Xtlan\Job\Component\ProcessRunner;
 
 /**
  * CreateJobBehavior
@@ -50,7 +53,7 @@ class CreateJobBehavior extends Behavior
      */
     public function actionIndex()
     {
-        $this->render('index');
+        return $this->render('index');
     }
 
 
@@ -63,7 +66,7 @@ class CreateJobBehavior extends Behavior
     public function startWithFilter(Model $filter)
     {
         if ($filter->load(Yii::$app->request->post()) and $filter->validate()) {
-            $this->start($filter->attributes);
+            return $this->start($filter->attributes);
         } 
         
         throw new BadReqeustHttpException('Данные не прошли валидацию'.print_r($filter->errors, true));
@@ -84,6 +87,7 @@ class CreateJobBehavior extends Behavior
         $job->name = $this->workerName;
         $job->action = $this->actionName;
         $job->params = $params;
+        $job->uid = $job::UID;
         if (!$job->save()) {
             throw new BadRequestHttpException('Не удалось сохранить задачу'.print_r($job->errors, true));
         }
@@ -91,11 +95,11 @@ class CreateJobBehavior extends Behavior
         try {
             $this->jobManager->start($job);
         } catch (\Exception $e) {
-            throw new ServerErrorException($e->getMessage());
+            throw new ServerErrorHttpException($e->getMessage());
         }
 
         $ajax = new Ajax;
-        $ajax->sendRespond(
+        return $ajax->sendRespond(
             true,
             'Задача запущена успешно',
             array(
@@ -114,7 +118,7 @@ class CreateJobBehavior extends Behavior
         $this->jobManager->checkError($job);
 
         $ajax = new Ajax;
-        $ajax->sendRespond(
+        return $ajax->sendRespond(
             true,
             'Идет выполнение команды',
             array(
@@ -136,7 +140,7 @@ class CreateJobBehavior extends Behavior
         try {
             $this->jobManager->stop($job);
         } catch(\Exception $e) {
-            throw new ServerErrorException($e->getMessage());
+            throw new ServerErrorHttpException($e->getMessage());
         }
 
         if (!$job->delete()) {
@@ -144,7 +148,7 @@ class CreateJobBehavior extends Behavior
         }
 
         $ajax = new Ajax;
-        $ajax->sendRespond(true, 'Задача остановлена успешно');
+        return $ajax->sendRespond(true, 'Задача остановлена успешно');
     }
 
     /**
@@ -181,12 +185,12 @@ class CreateJobBehavior extends Behavior
         if (!isset($this->_jobManager)) {
             $modelName = $this->modelName;
 
-            $this->_jobManager = new obManager();
-            $this->_jobManager->setJob($modelName::model());
+            $this->_jobManager = new JobManager();
+            $this->_jobManager->setJobQuery($modelName::find());
 
-            $this->_jobManager->setRunner(
+            $this->_jobManager->setProcessRunner(
                 new ProcessRunner(
-                    Yii::getPathOfAlias('@app')
+                    Yii::getAlias('@app')
                 )
             );
         }

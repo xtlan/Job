@@ -1,6 +1,7 @@
 <?php
+use yii\db\Migration;
 
-class m130411_043847_process_job extends EDbMigration
+class m130411_043847_process_job extends Migration
 {
 	public function up()
 	{

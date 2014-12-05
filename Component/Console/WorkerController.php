@@ -16,6 +16,12 @@ use Xtlan\Job\Model\Job;
  */
 abstract class WorkerController extends Controller
 {
+    /**
+     * jobClass
+     *
+     * @var string
+     */
+    public $jobClass;
 
     /**
      * _jobId
@@ -31,12 +37,6 @@ abstract class WorkerController extends Controller
      */
     private $_job;
 
-    /**
-     * jobClass
-     *
-     * @var string
-     */
-    public $jobClass;
 
     /**
      * getJob
@@ -78,10 +78,8 @@ abstract class WorkerController extends Controller
      */
     public function runAction($id, $params = [])
     {
-        if ($id == 'index') {
-            $this->_jobId = $params['job_id'];
-        }
-        return parent::runAction($id, $params = []);
+        $this->_jobId = $params[0];
+        return parent::runAction($id, $params);
     }
 
 

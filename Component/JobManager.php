@@ -65,24 +65,24 @@ class JobManager
 
 
     /**
-     * Gets the value of job
+     * getJobQuery
      *
-     * @return Job
+     * @return JobQuery
      */
-    public function getJob()
+    public function getJobQuery()
     {
-        return $this->_Job;
+        return $this->_query;
     }
     
     /**
-     * Sets the value of Job
+     * setJobQuery
      *
-     * @param  Job $Job 
+     * @param JobQuery $query
+     * @return void
      */
-    public function setJob(Job $job)
+    public function setJobQuery(JobQuery $query)
     {
-        $this->_job = $job;
-        return $this;
+        $this->_query = $query;
     }
 
     
@@ -96,9 +96,7 @@ class JobManager
      */
     public function start(Job $job)
     {
-
-        $this->setJob($job);
-        $this->clearOldJobs();
+        $this->clearOldJobs($job->oldMinInterval, $job->uid);
         $this->clearZombieJobs();
   
         try {
@@ -142,28 +140,19 @@ class JobManager
     }
 
     /**
-     * getJobQuery
-     *
-     * @return JobQuery
-     */
-    private function getJobQuery()
-    {
-        $jobClass = $this->getJob()->className();
-        return $jobClass::find();
-    }
-
-    /**
      * clearOldJobs
      *
+     * @param int $oldMinInterval
+     * @param string $uid
      * @return void
      */
-    private function clearOldJobs()
+    private function clearOldJobs($oldMinInterval, $uid)
     {
-        $query = $this->getJobQuery();
 
-        $yesterday = time() - $this->getJob()->oldMinInterval;
+        $yesterday = time() - $oldMinInterval;
+        $query = $this->getJobQuery();
         $query->andWhere(['<', 'start', $yesterday]);
-        $query->forUid($this->getJob()->uid);
+        $query->forUid($uid);
         $jobs = $query->all();
 
         foreach ($jobs as $job) {
